@@ -252,8 +252,8 @@ export const MapCanvas: React.FC = () => {
 
     const hit = stage.getIntersection(pos);
     if (!hit) return;
-
-    // Find the province group by traversing up
+    
+    // Find the province group
     let node = hit;
     let provinceId: string | undefined;
     
@@ -270,29 +270,40 @@ export const MapCanvas: React.FC = () => {
     
     if (!provinceId) return;
 
-    // Calculate position relative to the map (unscaled)
-    const transform = stage.getAbsoluteTransform().copy().invert();
-    const relativePos = transform.point(pos);
-    
-    // Adjust for map offset
-    const mapX = relativePos.x - MAP_OFFSET_X;
-    const mapY = relativePos.y - MAP_OFFSET_Y;
+    const provinceConfig = PROVINCE_CONFIGS.find(p => p.id === provinceId);
+    const bounds = provinceConfig ? calculatePathBounds(provinceConfig.path) : null;
 
     // Handle drag from gallery
     const galleryImage = e.dataTransfer.getData('gallery-image');
     if (galleryImage) {
         const img = new Image();
         img.onload = async () => {
-            const targetSize = 300; 
-            const scale = targetSize / Math.max(img.width, img.height);
+            let scale = 1;
+            let x = 0;
+            let y = 0;
+
+            if (bounds) {
+              const coverScale = Math.max(
+                bounds.width / img.width,
+                bounds.height / img.height
+              );
+              scale = coverScale * 1.05;
+              x = bounds.centerX - (img.width * scale) / 2;
+              y = bounds.centerY - (img.height * scale) / 2;
+            } else {
+              const targetSize = 300;
+              scale = targetSize / Math.max(img.width, img.height);
+              x = - (img.width * scale) / 2;
+              y = - (img.height * scale) / 2;
+            }
             
             setSelectedId(provinceId);
             setIsEditing(true);
 
             await updateProvince(provinceId, {
                 image: galleryImage,
-                x: mapX - (img.width * scale) / 2,
-                y: mapY - (img.height * scale) / 2,
+                x,
+                y,
                 scale: scale,
                 rotation: 0,
             });
@@ -311,17 +322,32 @@ export const MapCanvas: React.FC = () => {
         // Pre-load image to calculate better initial scale/position
         const img = new Image();
         img.onload = async () => {
-          // Target size roughly 200px or based on province size (simplified to constant for now)
-          const targetSize = 300; 
-          const scale = targetSize / Math.max(img.width, img.height);
+          let scale = 1;
+          let x = 0;
+          let y = 0;
+
+          if (bounds) {
+            const coverScale = Math.max(
+              bounds.width / img.width,
+              bounds.height / img.height
+            );
+            scale = coverScale * 1.05;
+            x = bounds.centerX - (img.width * scale) / 2;
+            y = bounds.centerY - (img.height * scale) / 2;
+          } else {
+            const targetSize = 300;
+            scale = targetSize / Math.max(img.width, img.height);
+            x = - (img.width * scale) / 2;
+            y = - (img.height * scale) / 2;
+          }
           
           setSelectedId(provinceId);
           setIsEditing(true);
 
           await updateProvince(provinceId, {
             image: base64,
-            x: mapX - (img.width * scale) / 2,
-            y: mapY - (img.height * scale) / 2,
+            x,
+            y,
             scale: scale,
             rotation: 0,
           });
@@ -544,8 +570,31 @@ export const MapCanvas: React.FC = () => {
             }));
         }}
         onClick={(e) => {
-          const clickedOnEmpty = e.target === e.target.getStage();
-          if (clickedOnEmpty) {
+          const stage = e.target.getStage();
+          if (!stage) return;
+
+          let node: any = e.target;
+          let provinceId: string | undefined;
+
+          while (node && node !== stage) {
+            const id = node.id && node.id();
+            if (id && PROVINCE_CONFIGS.find(p => p.id === id)) {
+              provinceId = id;
+              break;
+            }
+            const parent = node.getParent && node.getParent();
+            if (!parent) break;
+            node = parent;
+          }
+
+          if (!isEditing) {
+            if (!provinceId) {
+              setSelectedId(null);
+            }
+            return;
+          }
+
+          if (provinceId !== selectedId) {
             setSelectedId(null);
             setIsEditing(false);
           }
