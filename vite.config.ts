@@ -5,9 +5,6 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
-
-  const isGitHubPages = mode === 'production' && process.env.GITHUB_PAGES === 'true';
-
   return {
     plugins: [react(), tailwindcss()],
     define: {
@@ -18,7 +15,7 @@ export default defineConfig(({mode}) => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-    base: isGitHubPages ? '/maplog/' : '/',
+    base: '/maplog/',
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
     },
