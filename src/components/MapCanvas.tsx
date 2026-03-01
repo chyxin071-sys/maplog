@@ -701,6 +701,8 @@ export const MapCanvas: React.FC = () => {
         onResetAll={resetAll}
         scale={viewState.scale}
         onToggleGallery={handleToggleGallery}
+        canDeleteCurrent={!!(selectedId && states[selectedId]?.image)}
+        onDeleteCurrent={handleDeleteCurrentProvinceImage}
       />
       
       <Stage
@@ -833,16 +835,6 @@ export const MapCanvas: React.FC = () => {
             </Group>
         </Layer>
       </Stage>
-      
-      {selectedId && states[selectedId]?.image && (
-        <button
-          onClick={handleDeleteCurrentProvinceImage}
-          className="absolute bottom-4 right-4 px-3 py-1.5 rounded-full border border-red-200 text-[11px] text-red-500 bg-white/80 hover:bg-red-50 hover:border-red-300 shadow-sm transition-colors"
-        >
-          删除当前省份照片
-        </button>
-      )}
-
       <div className="absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
         <p>拖拽或点击图片填充 • 滚轮/双指缩放 • 拖拽平移</p>
         {selectedId && (

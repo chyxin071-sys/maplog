@@ -9,6 +9,8 @@ interface ToolbarProps {
   onResetAll: () => void;
   scale: number;
   onToggleGallery: () => void;
+  canDeleteCurrent?: boolean;
+  onDeleteCurrent?: () => void;
 }
 
 const TooltipButton: React.FC<{
@@ -64,12 +66,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onResetAll,
   scale,
   onToggleGallery,
+  canDeleteCurrent,
+  onDeleteCurrent,
 }) => {
   const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   return (
     <>
       <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        {canDeleteCurrent && onDeleteCurrent && (
+          <button
+            onClick={onDeleteCurrent}
+            className="absolute -top-10 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full border border-red-200 text-[11px] text-red-500 bg-white/95 hover:bg-red-50 hover:border-red-300 shadow-md transition-colors"
+          >
+            删除当前省份照片
+          </button>
+        )}
         <div className="
           flex items-center gap-1 p-2 
           bg-white/80 backdrop-blur-xl 
