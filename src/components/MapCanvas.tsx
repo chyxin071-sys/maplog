@@ -73,6 +73,7 @@ export const MapCanvas: React.FC = () => {
     x: 0,
     y: 0,
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   // Calculate initial fit
   useEffect(() => {
@@ -92,6 +93,7 @@ export const MapCanvas: React.FC = () => {
       setBaseScale(scale);
       setViewState({ scale: 1, x, y });
       setDimensions({ width: window.innerWidth, height: window.innerHeight });
+      setIsMobile(window.innerWidth < 768);
     };
 
     fitMap();
@@ -693,6 +695,15 @@ export const MapCanvas: React.FC = () => {
         </div>
       )}
 
+      {!isMobile && (
+        <button
+          onClick={handleToggleGallery}
+          className="hidden md:flex fixed bottom-32 right-10 z-40 px-3 py-2 rounded-full bg-white/90 border border-gray-200 text-xs text-gray-700 shadow-md hover:bg-gray-50"
+        >
+          打开图库
+        </button>
+      )}
+
       <Toolbar 
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
@@ -704,7 +715,7 @@ export const MapCanvas: React.FC = () => {
         canDeleteCurrent={!!(selectedId && states[selectedId]?.image)}
         onDeleteCurrent={handleDeleteCurrentProvinceImage}
       />
-      
+
       <Stage
         ref={stageRef}
         width={dimensions.width}
@@ -835,10 +846,20 @@ export const MapCanvas: React.FC = () => {
             </Group>
         </Layer>
       </Stage>
-      <div className="absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
-        <p>拖拽或点击图片填充 • 滚轮/双指缩放 • 拖拽平移</p>
+
+      <div className="hidden md:block absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
+        <p>拖拽或点击图片填充 · 滚轮缩放 · 拖拽平移</p>
         {selectedId && (
           <p className="mt-1 text-xs text-emerald-500">
+            已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+          </p>
+        )}
+      </div>
+
+      <div className="md:hidden fixed bottom-28 left-1/2 -translate-x-1/2 text-[11px] text-stone-400 pointer-events-none select-none text-center px-3">
+        <p>点击图片填充 · 双指缩放 · 拖拽平移</p>
+        {selectedId && (
+          <p className="mt-1 text-[10px] text-emerald-500">
             已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
           </p>
         )}

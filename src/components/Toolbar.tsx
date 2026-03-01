@@ -105,6 +105,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               icon={<Plus size={20} strokeWidth={1.5} />} 
               label="打开图库" 
               variant="primary"
+              className="md:hidden"
             />
             <TooltipButton 
               onClick={onExportImage} 
