@@ -65,46 +65,78 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   scale,
   onToggleGallery,
 }) => {
-  return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
-      <div className="
-        flex items-center gap-1 p-2 
-        bg-white/80 backdrop-blur-xl 
-        border border-white/40 shadow-2xl shadow-black/5
-        rounded-2xl transition-all duration-300 hover:shadow-black/10 hover:bg-white/90
-      ">
-        {/* View Controls Group */}
-        <div className="flex items-center gap-1 pr-2 border-r border-gray-200/50">
-          <TooltipButton onClick={onZoomOut} icon={<ZoomOut size={20} strokeWidth={1.5} />} label="缩小" />
-          <div className="w-12 text-center text-xs font-medium text-gray-400 font-mono select-none">
-            {Math.round(scale * 100)}%
-          </div>
-          <TooltipButton onClick={onZoomIn} icon={<ZoomIn size={20} strokeWidth={1.5} />} label="放大" />
-          <TooltipButton onClick={onResetView} icon={<Maximize size={20} strokeWidth={1.5} />} label="重置视图" />
-        </div>
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
 
-        {/* Action Controls Group */}
-        <div className="flex items-center gap-1 pl-2">
-          <TooltipButton 
-            onClick={onToggleGallery} 
-            icon={<Plus size={20} strokeWidth={1.5} />} 
-            label="打开图库" 
-            variant="primary"
-          />
-          <TooltipButton 
-            onClick={onExportImage} 
-            icon={<Download size={20} strokeWidth={1.5} />} 
-            label="保存图片" 
-            variant="primary"
-          />
-          <TooltipButton 
-            onClick={onResetAll} 
-            icon={<Trash2 size={20} strokeWidth={1.5} />} 
-            label="清空地图" 
-            variant="danger"
-          />
+  return (
+    <>
+      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <div className="
+          flex items-center gap-1 p-2 
+          bg-white/80 backdrop-blur-xl 
+          border border-white/40 shadow-2xl shadow-black/5
+          rounded-2xl transition-all duration-300 hover:shadow-black/10 hover:bg-white/90
+        ">
+          {/* View Controls Group */}
+          <div className="flex items-center gap-1 pr-2 border-r border-gray-200/50">
+            <TooltipButton onClick={onZoomOut} icon={<ZoomOut size={20} strokeWidth={1.5} />} label="缩小" />
+            <div className="w-12 text-center text-xs font-medium text-gray-400 font-mono select-none">
+              {Math.round(scale * 100)}%
+            </div>
+            <TooltipButton onClick={onZoomIn} icon={<ZoomIn size={20} strokeWidth={1.5} />} label="放大" />
+            <TooltipButton onClick={onResetView} icon={<Maximize size={20} strokeWidth={1.5} />} label="重置视图" />
+          </div>
+
+          {/* Action Controls Group */}
+          <div className="flex items-center gap-1 pl-2">
+            <TooltipButton 
+              onClick={onToggleGallery} 
+              icon={<Plus size={20} strokeWidth={1.5} />} 
+              label="打开图库" 
+              variant="primary"
+            />
+            <TooltipButton 
+              onClick={onExportImage} 
+              icon={<Download size={20} strokeWidth={1.5} />} 
+              label="保存图片" 
+              variant="primary"
+            />
+            <TooltipButton 
+              onClick={() => setShowConfirmReset(true)} 
+              icon={<Trash2 size={20} strokeWidth={1.5} />} 
+              label="清空地图" 
+              variant="danger"
+            />
+          </div>
         </div>
       </div>
-    </div>
+
+      {showConfirmReset && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-2xl shadow-2xl px-5 py-4 w-72 max-w-[80vw]">
+            <h3 className="text-sm font-medium text-gray-900 mb-2">清空地图？</h3>
+            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+              这将清除所有省份已填的照片和位置调整，操作不可撤销。
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setShowConfirmReset(false)}
+                className="px-3 py-1.5 rounded-full border border-gray-200 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  onResetAll();
+                  setShowConfirmReset(false);
+                }}
+                className="px-3 py-1.5 rounded-full bg-red-500 text-xs text-white hover:bg-red-600 shadow-sm"
+              >
+                确认清空
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
