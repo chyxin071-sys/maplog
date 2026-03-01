@@ -5,7 +5,6 @@ import { PROVINCE_CONFIGS, MAP_WIDTH, MAP_HEIGHT, MAP_OFFSET_X, MAP_OFFSET_Y, NI
 import { useMapState } from '../hooks/useMapState';
 import { Toolbar } from './Toolbar';
 import { ImageGallery } from './ImageGallery';
-import { GalleryImage } from '../services/db';
 
 const EXPORT_WIDTH = 2400;
 const EXPORT_HEIGHT = 1800;
@@ -63,7 +62,7 @@ export const MapCanvas: React.FC = () => {
   const [exportStep, setExportStep] = useState<'edit' | 'preview'>('edit');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
-  
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [baseScale, setBaseScale] = useState(1);
 
   // Viewport state（相对于 baseScale 的缩放）
@@ -101,6 +100,21 @@ export const MapCanvas: React.FC = () => {
   const stageRef = useRef<any>(null);
   const mapContentRef = useRef<any>(null);
   const exportContentRef = useRef<any>(null);
+  const lastCenterRef = useRef<{ x: number; y: number } | null>(null);
+  const lastDistRef = useRef<number | null>(null);
+
+  const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getCenter = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+    return {
+      x: (p1.x + p2.x) / 2,
+      y: (p1.y + p2.y) / 2,
+    };
+  };
 
   const handleZoomIn = () => {
     setViewState(prev => ({
@@ -135,6 +149,50 @@ export const MapCanvas: React.FC = () => {
       x,
       y,
     });
+  };
+  
+  const handleToggleGallery = () => {
+    setIsGalleryOpen(prev => !prev);
+  };
+
+  const fillProvinceWithImage = async (
+    provinceId: string,
+    image: string,
+    boundsOverride?: { width: number; height: number; centerX: number; centerY: number }
+  ) => {
+    const provinceConfig = PROVINCE_CONFIGS.find(p => p.id === provinceId);
+    const bounds = boundsOverride ?? (provinceConfig ? calculatePathBounds(provinceConfig.path) : null);
+
+    const img = new Image();
+    img.onload = async () => {
+      let scale = 1;
+      let x = 0;
+      let y = 0;
+
+      if (bounds) {
+        const coverScale = Math.max(bounds.width / img.width, bounds.height / img.height);
+        scale = coverScale * 1.05;
+        x = bounds.centerX - (img.width * scale) / 2;
+        y = bounds.centerY - (img.height * scale) / 2;
+      } else {
+        const targetSize = 300;
+        scale = targetSize / Math.max(img.width, img.height);
+        x = -(img.width * scale) / 2;
+        y = -(img.height * scale) / 2;
+      }
+
+      setSelectedId(provinceId);
+      setIsEditing(true);
+
+      await updateProvince(provinceId, {
+        image,
+        x,
+        y,
+        scale,
+        rotation: 0,
+      });
+    };
+    img.src = image;
   };
   
   const handleExportClick = () => {
@@ -276,39 +334,7 @@ export const MapCanvas: React.FC = () => {
     // Handle drag from gallery
     const galleryImage = e.dataTransfer.getData('gallery-image');
     if (galleryImage) {
-        const img = new Image();
-        img.onload = async () => {
-            let scale = 1;
-            let x = 0;
-            let y = 0;
-
-            if (bounds) {
-              const coverScale = Math.max(
-                bounds.width / img.width,
-                bounds.height / img.height
-              );
-              scale = coverScale * 1.05;
-              x = bounds.centerX - (img.width * scale) / 2;
-              y = bounds.centerY - (img.height * scale) / 2;
-            } else {
-              const targetSize = 300;
-              scale = targetSize / Math.max(img.width, img.height);
-              x = - (img.width * scale) / 2;
-              y = - (img.height * scale) / 2;
-            }
-            
-            setSelectedId(provinceId);
-            setIsEditing(true);
-
-            await updateProvince(provinceId, {
-                image: galleryImage,
-                x,
-                y,
-                scale: scale,
-                rotation: 0,
-            });
-        };
-        img.src = galleryImage;
+        fillProvinceWithImage(provinceId, galleryImage, bounds || undefined);
         return;
     }
 
@@ -318,41 +344,7 @@ export const MapCanvas: React.FC = () => {
       const reader = new FileReader();
       reader.onload = async (event) => {
         const base64 = event.target?.result as string;
-        
-        // Pre-load image to calculate better initial scale/position
-        const img = new Image();
-        img.onload = async () => {
-          let scale = 1;
-          let x = 0;
-          let y = 0;
-
-          if (bounds) {
-            const coverScale = Math.max(
-              bounds.width / img.width,
-              bounds.height / img.height
-            );
-            scale = coverScale * 1.05;
-            x = bounds.centerX - (img.width * scale) / 2;
-            y = bounds.centerY - (img.height * scale) / 2;
-          } else {
-            const targetSize = 300;
-            scale = targetSize / Math.max(img.width, img.height);
-            x = - (img.width * scale) / 2;
-            y = - (img.height * scale) / 2;
-          }
-          
-          setSelectedId(provinceId);
-          setIsEditing(true);
-
-          await updateProvince(provinceId, {
-            image: base64,
-            x,
-            y,
-            scale: scale,
-            rotation: 0,
-          });
-        };
-        img.src = base64;
+        fillProvinceWithImage(provinceId, base64, bounds || undefined);
       };
       reader.readAsDataURL(file);
     }
@@ -398,6 +390,69 @@ export const MapCanvas: React.FC = () => {
       }
   };
 
+  const handleFillWithGalleryImage = (image: string) => {
+    if (!selectedId) {
+      alert('请先选择一个省份');
+      return;
+    }
+    const provinceConfig = PROVINCE_CONFIGS.find(p => p.id === selectedId);
+    const bounds = provinceConfig ? calculatePathBounds(provinceConfig.path) : null;
+    fillProvinceWithImage(selectedId, image, bounds || undefined);
+  };
+
+  const handleTouchMove = (e: any) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (!e.evt.touches || e.evt.touches.length !== 2) return;
+
+    const touch1 = e.evt.touches[0];
+    const touch2 = e.evt.touches[1];
+    if (!touch1 || !touch2) return;
+
+    e.evt.preventDefault();
+
+    const p1 = { x: touch1.clientX, y: touch1.clientY };
+    const p2 = { x: touch2.clientX, y: touch2.clientY };
+
+    const newCenter = getCenter(p1, p2);
+    const newDist = getDistance(p1, p2);
+
+    if (!lastDistRef.current) {
+      lastDistRef.current = newDist;
+      lastCenterRef.current = newCenter;
+      return;
+    }
+
+    const oldScale = stage.scaleX();
+    const scaleBy = newDist / lastDistRef.current;
+    const newStageScale = oldScale * scaleBy;
+    const relativeScale = newStageScale / baseScale;
+
+    const pointTo = {
+      x: (newCenter.x - stage.x()) / oldScale,
+      y: (newCenter.y - stage.y()) / oldScale,
+    };
+
+    const newPos = {
+      x: newCenter.x - pointTo.x * newStageScale,
+      y: newCenter.y - pointTo.y * newStageScale,
+    };
+
+    setViewState({
+      scale: relativeScale,
+      x: newPos.x,
+      y: newPos.y,
+    });
+
+    lastDistRef.current = newDist;
+    lastCenterRef.current = newCenter;
+  };
+
+  const handleTouchEnd = () => {
+    lastDistRef.current = null;
+    lastCenterRef.current = null;
+  };
+
   return (
     <div 
       className="relative w-full h-screen bg-[#F5F5F7] flex flex-col items-center justify-center overflow-hidden font-sans"
@@ -405,12 +460,15 @@ export const MapCanvas: React.FC = () => {
       onDrop={handleFileDrop}
     >
       <ImageGallery 
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
         onDragStart={(e, image) => {
           e.dataTransfer.setData('gallery-image', image);
         }}
+        onFillWithImage={handleFillWithGalleryImage}
+        hasActiveProvince={!!selectedId}
       />
 
-      {/* Header - Visible in normal mode */}
       {!showExportPreview && (
         <div className="absolute top-12 left-12 z-10 pointer-events-none select-none">
             <h1 className="text-4xl font-extralight tracking-[0.2em] text-gray-900">旅行拼图</h1>
@@ -529,6 +587,7 @@ export const MapCanvas: React.FC = () => {
         onExportImage={handleExportClick}
         onResetAll={resetAll}
         scale={viewState.scale}
+        onToggleGallery={handleToggleGallery}
       />
       
       <Stage
@@ -537,8 +596,7 @@ export const MapCanvas: React.FC = () => {
         height={dimensions.height}
         draggable={!isEditing}
         onWheel={(e) => {
-          if (isEditing) return; // Optional: Disable zoom while editing? User didn't ask, but might be safer.
-          // Let's keep zoom enabled as it might be useful, but dragging map is definitely bad.
+          if (isEditing) return;
           e.evt.preventDefault();
           const scaleBy = 1.1;
           const stage = e.target.getStage();
@@ -569,6 +627,9 @@ export const MapCanvas: React.FC = () => {
                 y: e.target.y()
             }));
         }}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
         onClick={(e) => {
           const stage = e.target.getStage();
           if (!stage) return;
@@ -691,7 +752,7 @@ export const MapCanvas: React.FC = () => {
       </Stage>
       
       <div className="absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
-        <p>拖拽图片到省份区域 • 滚轮缩放 • 拖拽平移</p>
+        <p>拖拽或点击图片填充 • 滚轮/双指缩放 • 拖拽平移</p>
       </div>
     </div>
   );

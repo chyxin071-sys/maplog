@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { ZoomIn, ZoomOut, Maximize, Download, Trash2, FolderUp, FolderDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { ZoomIn, ZoomOut, Maximize, Download, Trash2, Plus } from 'lucide-react';
 
 interface ToolbarProps {
   onZoomIn: () => void;
@@ -8,6 +8,7 @@ interface ToolbarProps {
   onExportImage: () => void;
   onResetAll: () => void;
   scale: number;
+  onToggleGallery: () => void;
 }
 
 const TooltipButton: React.FC<{
@@ -62,6 +63,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   onExportImage,
   onResetAll,
   scale,
+  onToggleGallery,
 }) => {
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
@@ -83,6 +85,12 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
         {/* Action Controls Group */}
         <div className="flex items-center gap-1 pl-2">
+          <TooltipButton 
+            onClick={onToggleGallery} 
+            icon={<Plus size={20} strokeWidth={1.5} />} 
+            label="打开图库" 
+            variant="primary"
+          />
           <TooltipButton 
             onClick={onExportImage} 
             icon={<Download size={20} strokeWidth={1.5} />} 

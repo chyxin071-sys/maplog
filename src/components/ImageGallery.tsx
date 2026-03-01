@@ -1,23 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Upload, Trash2, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
+import { Upload, Trash2, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { saveGalleryImage, getAllGalleryImages, deleteGalleryImage, GalleryImage, clearGallery } from '../services/db';
 
 interface ImageGalleryProps {
+  isOpen: boolean;
+  onClose: () => void;
   onDragStart: (e: React.DragEvent, image: string) => void;
+  onFillWithImage: (image: string) => void;
+  hasActiveProvince: boolean;
 }
 
-export const ImageGallery: React.FC<ImageGalleryProps> = ({ onDragStart }) => {
+export const ImageGallery: React.FC<ImageGalleryProps> = ({ 
+  isOpen, 
+  onClose, 
+  onDragStart, 
+  onFillWithImage,
+  hasActiveProvince,
+}) => {
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [activeImageId, setActiveImageId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadImages();
   }, []);
-
-  const handleToggle = () => {
-    setIsOpen(!isOpen);
-  };
 
   const loadImages = async () => {
     try {
@@ -70,27 +76,12 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ onDragStart }) => {
   };
 
   return (
-    <div 
-      className={`fixed top-0 left-0 h-full z-[9999] transition-transform duration-300 ease-in-out bg-white/90 backdrop-blur-md shadow-2xl border-r border-white/50 flex flex-col w-64 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
+    <div
+      className={`fixed inset-x-0 bottom-0 z-[60] transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-y-0' : 'translate-y-full pointer-events-none'}`}
     >
-      {/* Toggle Button Container */}
-      <div className="absolute top-1/2 -right-12 flex items-center">
-        <button
-          onClick={handleToggle}
-          className={`w-12 h-32 bg-white shadow-[2px_0_12px_rgba(0,0,0,0.15)] rounded-r-xl flex flex-col items-center justify-center text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all border-y border-r border-gray-100 cursor-pointer ${!isOpen ? 'animate-pulse' : ''}`}
-          title={isOpen ? "收起图库" : "展开图库"}
-        >
-          <div className="flex flex-col items-center gap-2 transform group-hover:scale-110 transition-transform">
-              {isOpen ? <ChevronLeft size={24} /> : <ChevronRight size={24} />}
-              <span className="text-sm font-medium writing-vertical-rl select-none tracking-widest">图库</span>
-          </div>
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="flex flex-col h-full w-full overflow-hidden">
+      <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200 rounded-t-3xl flex flex-col h-[55vh] w-full">
         {/* Header */}
-        <div className="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/50">
+        <div className="p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/70 rounded-t-3xl">
           <h2 className="text-lg font-light tracking-widest text-gray-800 flex items-center gap-2">
             <ImageIcon size={18} />
             图库
@@ -105,6 +96,13 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ onDragStart }) => {
                     <Trash2 size={16} />
                 </button>
              )}
+             <button 
+                onClick={onClose}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="收起图库"
+             >
+                <ChevronDown size={16} />
+             </button>
           </div>
         </div>
 
@@ -136,12 +134,25 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({ onDragStart }) => {
                 className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200 shadow-sm bg-white cursor-grab active:cursor-grabbing hover:shadow-md transition-all"
                 draggable
                 onDragStart={(e) => onDragStart(e, img.data)}
+                onClick={() => setActiveImageId(prev => prev === img.id ? null : img.id)}
               >
                 <img 
                   src={img.data} 
                   alt="Gallery item" 
                   className="w-full h-full object-cover"
                 />
+                {activeImageId === img.id && hasActiveProvince && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onFillWithImage(img.data);
+                      setActiveImageId(null);
+                    }}
+                    className="absolute inset-0 bg-black/45 text-white text-xs font-medium flex items-center justify-center"
+                  >
+                    填充到选中省份
+                  </button>
+                )}
                 <button 
                   onClick={(e) => handleDelete(img.id, e)}
                   className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-md opacity-0 group-hover:opacity-100 hover:bg-red-500 transition-all"
