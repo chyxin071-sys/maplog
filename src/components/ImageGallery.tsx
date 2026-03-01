@@ -81,7 +81,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
 
   return (
     <div
-      className={`fixed z-[60] transform transition-transform duration-300 ease-in-out 
+      className={`fixed z-[50] transform transition-transform duration-300 ease-in-out 
         inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto
         ${panelTransform}`}
     >
