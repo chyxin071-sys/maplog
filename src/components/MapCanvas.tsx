@@ -850,20 +850,20 @@ export const MapCanvas: React.FC = () => {
       <div className="hidden md:block absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
         <p>拖拽或点击图片填充 · 滚轮缩放 · 拖拽平移</p>
         {selectedId && (
-          <p className="mt-1 text-xs text-emerald-500">
-            已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+          <p className="mt-1 text-xs text-emerald-500 whitespace-nowrap">
+            已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 在右侧图库中选择图片填充。
           </p>
         )}
       </div>
 
       <div className="md:hidden fixed bottom-32 left-1/2 -translate-x-1/2 text-[10px] text-stone-500 pointer-events-none select-none text-center px-3">
-        <p>
+        <p className="whitespace-nowrap">
           {!isEditing && '点击图片填充 · 双指缩放 · 拖拽平移'}
           {selectedId && (
             <>
               {!isEditing && ' · '}
               <span className="text-emerald-500">
-                已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+                已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 在图库中选择图片填充。
               </span>
             </>
           )}

@@ -75,11 +75,18 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
       }
   };
 
+  const panelTransform = isOpen
+    ? 'translate-y-0 md:translate-x-0'
+    : 'translate-y-full md:translate-x-full pointer-events-none';
+
   return (
     <div
-      className={`fixed inset-x-0 bottom-0 z-[60] transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-y-0' : 'translate-y-full pointer-events-none'}`}
+      className={`fixed z-[60] transform transition-transform duration-300 ease-in-out 
+        inset-x-0 bottom-0 md:inset-y-0 md:right-0 md:left-auto
+        ${panelTransform}`}
     >
-      <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200 rounded-t-3xl flex flex-col h-[55vh] w-full">
+      <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200 rounded-t-3xl flex flex-col h-[55vh] w-full
+        md:h-full md:w-[360px] md:max-w-none md:rounded-t-none md:rounded-l-3xl">
         {/* Header */}
         <div className="relative p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/70 rounded-t-3xl">
           <h2 className="text-lg font-light tracking-widest text-gray-800 flex items-center gap-2">
@@ -107,28 +114,21 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           </button>
         </div>
 
-        {/* Upload Area */}
-        <div 
-          className="p-4 bg-gray-50/50 border-b border-gray-100"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-            <Upload size={24} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
-            <span className="text-xs text-gray-500 font-medium group-hover:text-blue-600">点击上传图片</span>
-          </div>
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="hidden" 
-            multiple 
-            accept="image/*" 
-            onChange={handleFileUpload} 
-          />
-        </div>
-
         {/* Image Grid */}
         <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
+            {/* Upload Tile */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative aspect-square rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-blue-400 hover:bg-blue-50/40 transition-all group"
+            >
+              <Upload size={20} className="text-gray-400 group-hover:text-blue-500 transition-colors" />
+              <span className="text-[10px] text-gray-500 font-medium group-hover:text-blue-600">
+                上传图片
+              </span>
+            </button>
+
             {images.map((img) => (
               <div 
                 key={img.id} 
@@ -163,12 +163,21 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
                 </button>
               </div>
             ))}
-            {images.length === 0 && (
-                <div className="col-span-2 py-10 text-center text-gray-400 text-xs">
-                    暂无图片
-                </div>
-            )}
           </div>
+          {images.length === 0 && (
+            <div className="mt-3 text-center text-gray-400 text-xs">
+              暂无图片，先上传几张吧～
+            </div>
+          )}
+
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            className="hidden" 
+            multiple 
+            accept="image/*" 
+            onChange={handleFileUpload} 
+          />
         </div>
       </div>
     </div>
