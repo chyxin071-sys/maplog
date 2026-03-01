@@ -401,6 +401,9 @@ export const MapCanvas: React.FC = () => {
     fillProvinceWithImage(selectedId, image, bounds || undefined);
   };
 
+  const MIN_RELATIVE_SCALE = 0.6;
+  const MAX_RELATIVE_SCALE = 4;
+
   const handleTouchMove = (e: any) => {
     const stage = stageRef.current;
     if (!stage) return;
@@ -428,9 +431,18 @@ export const MapCanvas: React.FC = () => {
     }
 
     const oldScale = stage.scaleX();
-    const scaleBy = newDist / lastDistRef.current;
-    const newStageScale = oldScale * scaleBy;
-    const relativeScale = newStageScale / baseScale;
+    const rawScaleBy = newDist / lastDistRef.current;
+    const adjustedScaleBy = Math.pow(rawScaleBy, 1.4);
+    const tentativeStageScale = oldScale * adjustedScaleBy;
+    let relativeScale = tentativeStageScale / baseScale;
+
+    if (relativeScale < MIN_RELATIVE_SCALE) {
+      relativeScale = MIN_RELATIVE_SCALE;
+    } else if (relativeScale > MAX_RELATIVE_SCALE) {
+      relativeScale = MAX_RELATIVE_SCALE;
+    }
+
+    const newStageScale = baseScale * relativeScale;
 
     const pointTo = {
       x: (newCenter.x - stage.x()) / oldScale,
