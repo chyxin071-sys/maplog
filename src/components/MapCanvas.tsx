@@ -699,7 +699,8 @@ export const MapCanvas: React.FC = () => {
       {!isMobile && (
         <button
           onClick={handleToggleGallery}
-          className="hidden md:flex fixed top-1/2 right-0 -translate-y-1/2 z-[70] px-1.5 py-5 rounded-l-xl bg-white/95 border border-r-0 border-gray-200 text-[11px] text-gray-700 shadow-md hover:bg-gray-50 hover:text-gray-900 items-center justify-center flex-col gap-0.5"
+          className={`hidden md:flex fixed top-1/2 right-0 -translate-y-1/2 z-[70] px-1.5 py-5 rounded-l-xl bg-white/95 border border-r-0 border-gray-200 text-[11px] text-gray-700 shadow-md hover:bg-gray-50 hover:text-gray-900 items-center justify-center flex-col gap-0.5 transition-transform duration-300 ease-in-out
+            ${isGalleryOpen ? 'md:translate-x-[-360px]' : 'md:translate-x-0'}`}
         >
           {isGalleryOpen ? (
             <ChevronRight size={16} />
