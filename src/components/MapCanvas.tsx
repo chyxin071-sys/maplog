@@ -401,6 +401,7 @@ export const MapCanvas: React.FC = () => {
     const provinceConfig = PROVINCE_CONFIGS.find(p => p.id === selectedId);
     const bounds = provinceConfig ? calculatePathBounds(provinceConfig.path) : null;
     fillProvinceWithImage(selectedId, image, bounds || undefined);
+    setIsGalleryOpen(false);
   };
 
   const handleTouchMove = (e: any) => {
@@ -795,9 +796,6 @@ export const MapCanvas: React.FC = () => {
                             isDimmed={!!hoveredId && hoveredId !== config.id}
                             isDragTarget={dragOverId === config.id}
                             onSelect={(id) => {
-                                if (isEditing && selectedId !== id) {
-                                    return;
-                                }
                                 setSelectedId(id);
                                 setIsEditing(true);
                             }}

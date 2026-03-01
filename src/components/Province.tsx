@@ -141,10 +141,10 @@ export const Province: React.FC<ProvinceProps> = ({
       scaleX={scale}
       scaleY={scale}
       // Add a strong projection (shadow) effect on hover
-      shadowBlur={isHovered ? 50 : 0}
-      shadowColor={isHovered ? 'rgba(0,0,0,0.8)' : 'transparent'}
-      shadowOffsetY={isHovered ? 25 : 0}
-      shadowOffsetX={isHovered ? 12 : 0}
+      shadowBlur={isSelected ? 45 : isHovered ? 25 : 0}
+      shadowColor={isSelected ? 'rgba(15,23,42,0.7)' : isHovered ? 'rgba(0,0,0,0.4)' : 'transparent'}
+      shadowOffsetY={isSelected ? 30 : isHovered ? 16 : 0}
+      shadowOffsetX={isSelected ? 16 : isHovered ? 8 : 0}
     >
       {/* 1. Ghost Image (The Master) - Visible only when editing */}
       {state?.image && img && status === 'loaded' && isSelected && isEditing && (
@@ -196,8 +196,6 @@ export const Province: React.FC<ProvinceProps> = ({
         fill={
           state?.image
             ? 'transparent'
-            : isSelected
-            ? '#e0f2fe'
             : isDragTarget
             ? '#e0f2fe'
             : isHovered
@@ -206,14 +204,14 @@ export const Province: React.FC<ProvinceProps> = ({
         }
         stroke={
           isSelected
-            ? '#0f172a'
+            ? '#4b5563'
             : isDragTarget
             ? '#3b82f6'
             : isHovered
             ? '#94a3b8'
             : '#cbd5e1'
         }
-        strokeWidth={isSelected ? 2.5 : isDragTarget ? 2 : 1}
+        strokeWidth={isSelected ? 1.6 : isDragTarget ? 2 : 1}
         ref={shapeRef}
         listening={!state?.image || !isEditing} // If editing image, let clicks pass to image? 
         // Actually, we want to be able to click the province to select it if not selected.
@@ -240,7 +238,7 @@ export const Province: React.FC<ProvinceProps> = ({
       )}
 
       {/* Province Name Label */}
-      {(isHovered || isSelected) && center && !isEditing && (
+      {(isHovered || isSelected) && center && (
         <Label
           x={center.x}
           y={center.y - 10} // Offset slightly up
