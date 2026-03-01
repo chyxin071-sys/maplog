@@ -63,6 +63,7 @@ export const MapCanvas: React.FC = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [dimensions, setDimensions] = useState({ width: window.innerWidth, height: window.innerHeight });
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isPinching, setIsPinching] = useState(false);
   const [baseScale, setBaseScale] = useState(1);
 
   // Viewport state（相对于 baseScale 的缩放）
@@ -414,12 +415,15 @@ export const MapCanvas: React.FC = () => {
     const p1 = { x: touch1.clientX, y: touch1.clientY };
     const p2 = { x: touch2.clientX, y: touch2.clientY };
 
+    e.evt.preventDefault();
+
     const newCenter = getCenter(p1, p2);
     const newDist = getDistance(p1, p2);
 
     if (!lastDistRef.current) {
       lastDistRef.current = newDist;
       lastCenterRef.current = newCenter;
+      setIsPinching(true);
       return;
     }
 
@@ -446,11 +450,68 @@ export const MapCanvas: React.FC = () => {
 
     lastDistRef.current = newDist;
     lastCenterRef.current = newCenter;
+    setIsPinching(true);
   };
 
   const handleTouchEnd = () => {
     lastDistRef.current = null;
     lastCenterRef.current = null;
+    setIsPinching(false);
+  };
+
+  const handleTouchStart = (e: any) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    if (!e.evt.touches) return;
+
+    if (e.evt.touches.length === 2) {
+      const touch1 = e.evt.touches[0];
+      const touch2 = e.evt.touches[1];
+      if (!touch1 || !touch2) return;
+
+      const p1 = { x: touch1.clientX, y: touch1.clientY };
+      const p2 = { x: touch2.clientX, y: touch2.clientY };
+
+      lastDistRef.current = getDistance(p1, p2);
+      lastCenterRef.current = getCenter(p1, p2);
+      setIsPinching(true);
+      e.evt.preventDefault();
+    } else {
+      lastDistRef.current = null;
+      lastCenterRef.current = null;
+      setIsPinching(false);
+    }
+  };
+
+  const handleStageClickOrTap = (e: any) => {
+    const stage = e.target.getStage();
+    if (!stage) return;
+
+    let node: any = e.target;
+    let provinceId: string | undefined;
+
+    while (node && node !== stage) {
+      const id = node.id && node.id();
+      if (id && PROVINCE_CONFIGS.find(p => p.id === id)) {
+        provinceId = id;
+        break;
+      }
+      const parent = node.getParent && node.getParent();
+      if (!parent) break;
+      node = parent;
+    }
+
+    if (!isEditing) {
+      if (!provinceId) {
+        setSelectedId(null);
+      }
+      return;
+    }
+
+    if (provinceId !== selectedId) {
+      setSelectedId(null);
+      setIsEditing(false);
+    }
   };
 
   return (
@@ -594,7 +655,7 @@ export const MapCanvas: React.FC = () => {
         ref={stageRef}
         width={dimensions.width}
         height={dimensions.height}
-        draggable={!isEditing}
+        draggable={!isEditing && !isPinching}
         onWheel={(e) => {
           if (isEditing) return;
           e.evt.preventDefault();
@@ -627,39 +688,12 @@ export const MapCanvas: React.FC = () => {
                 y: e.target.y()
             }));
         }}
+        onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
-        onClick={(e) => {
-          const stage = e.target.getStage();
-          if (!stage) return;
-
-          let node: any = e.target;
-          let provinceId: string | undefined;
-
-          while (node && node !== stage) {
-            const id = node.id && node.id();
-            if (id && PROVINCE_CONFIGS.find(p => p.id === id)) {
-              provinceId = id;
-              break;
-            }
-            const parent = node.getParent && node.getParent();
-            if (!parent) break;
-            node = parent;
-          }
-
-          if (!isEditing) {
-            if (!provinceId) {
-              setSelectedId(null);
-            }
-            return;
-          }
-
-          if (provinceId !== selectedId) {
-            setSelectedId(null);
-            setIsEditing(false);
-          }
-        }}
+        onClick={handleStageClickOrTap}
+        onTap={handleStageClickOrTap}
       >
         <Layer>
             <Group ref={mapContentRef}>

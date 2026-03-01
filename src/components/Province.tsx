@@ -127,6 +127,10 @@ export const Province: React.FC<ProvinceProps> = ({
         e.cancelBubble = true;
         onSelect(config.id);
       }}
+      onTap={(e) => {
+        e.cancelBubble = true;
+        onSelect(config.id);
+      }}
       id={config.id}
       opacity={isDimmed ? 0.3 : 1}
       // Pivot scaling around the calculated center
