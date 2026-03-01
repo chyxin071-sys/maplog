@@ -76,8 +76,8 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
   };
 
   const panelTransform = isOpen
-    ? 'translate-y-0 md:translate-x-0'
-    : 'translate-y-full md:translate-x-full pointer-events-none';
+    ? 'translate-y-0 md:translate-x-0 md:translate-y-0'
+    : 'translate-y-full md:translate-x-full md:translate-y-0 pointer-events-none';
 
   return (
     <div
@@ -88,7 +88,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
       <div className="mx-auto max-w-3xl bg-white/95 backdrop-blur-md shadow-2xl border border-gray-200 rounded-t-3xl flex flex-col h-[55vh] w-full
         md:h-full md:w-[360px] md:max-w-none md:rounded-t-none md:rounded-l-3xl">
         {/* Header */}
-        <div className="relative p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/70 rounded-t-3xl">
+        <div className="relative p-4 border-b border-gray-200/50 flex justify-between items-center bg-white/70 rounded-t-3xl md:rounded-t-none">
           <h2 className="text-lg font-light tracking-widest text-gray-800 flex items-center gap-2">
             <ImageIcon size={18} />
             图库
@@ -106,7 +106,7 @@ export const ImageGallery: React.FC<ImageGalleryProps> = ({
           </div>
           <button 
             onClick={onClose}
-            className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 text-xs font-medium flex items-center gap-1 transition-colors"
+            className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 text-xs font-medium flex items-center gap-1 transition-colors md:hidden"
             title="收起图库"
           >
             <ChevronDown size={14} />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Stage, Layer, Path, Group, Rect, Text } from 'react-konva';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Province } from './Province';
 import { PROVINCE_CONFIGS, MAP_WIDTH, MAP_HEIGHT, MAP_OFFSET_X, MAP_OFFSET_Y, NINE_DASH_PATHS } from '../constants/mapData';
 import { useMapState } from '../hooks/useMapState';
@@ -698,9 +699,13 @@ export const MapCanvas: React.FC = () => {
       {!isMobile && (
         <button
           onClick={handleToggleGallery}
-          className="hidden md:flex fixed top-1/2 right-0 -translate-y-1/2 z-40 px-2 py-3 rounded-l-xl bg-white/95 border border-r-0 border-gray-200 text-[11px] text-gray-700 shadow-md hover:bg-gray-50 hover:text-gray-900 items-center gap-1"
+          className="hidden md:flex fixed top-1/2 right-0 -translate-y-1/2 z-40 px-1.5 py-5 rounded-l-xl bg-white/95 border border-r-0 border-gray-200 text-[11px] text-gray-700 shadow-md hover:bg-gray-50 hover:text-gray-900 items-center justify-center"
         >
-          <span className="writing-vertical-rl tracking-[0.2em]">图库</span>
+          {isGalleryOpen ? (
+            <ChevronRight size={16} />
+          ) : (
+            <ChevronLeft size={16} />
+          )}
         </button>
       )}
 
