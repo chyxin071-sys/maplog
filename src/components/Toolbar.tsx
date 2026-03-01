@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ZoomIn, ZoomOut, Maximize, Download, Trash2, Plus } from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize, Download, Trash2, Plus, MessageSquare } from 'lucide-react';
 
 interface ToolbarProps {
   onZoomIn: () => void;
@@ -106,6 +106,11 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               label="打开图库" 
               variant="primary"
               className="md:hidden"
+            />
+            <TooltipButton 
+              onClick={() => window.open('https://github.com/chyxin071-sys/maplog/issues', '_blank', 'noopener,noreferrer')}
+              icon={<MessageSquare size={20} strokeWidth={1.5} />} 
+              label="留言反馈（公开）" 
             />
             <TooltipButton 
               onClick={onExportImage} 
