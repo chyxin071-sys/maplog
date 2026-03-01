@@ -7,10 +7,7 @@ export default function App() {
       <MapCanvas />
       <div className="fixed bottom-3 right-4 text-[10px] text-gray-400 bg-white/70 px-3 py-1 rounded-full shadow-sm select-none">
         <span id="busuanzi_container_page_pv">
-          本页已被访问 <span id="busuanzi_value_page_pv"></span> 次，
-        </span>
-        <span id="busuanzi_container_page_uv">
-          你是第 <span id="busuanzi_value_page_uv"></span> 位留痕的旅行者
+          你是第 <span id="busuanzi_value_page_pv"></span> 位留痕的旅行者
         </span>
       </div>
     </main>
