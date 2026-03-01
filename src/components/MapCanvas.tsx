@@ -711,17 +711,19 @@ export const MapCanvas: React.FC = () => {
         </button>
       )}
 
-      <Toolbar 
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onResetView={handleResetView}
-        onExportImage={handleExportClick}
-        onResetAll={resetAll}
-        scale={viewState.scale}
-        onToggleGallery={handleToggleGallery}
-        canDeleteCurrent={!!(selectedId && states[selectedId]?.image)}
-        onDeleteCurrent={handleDeleteCurrentProvinceImage}
-      />
+      {!(isMobile && isGalleryOpen) && (
+        <Toolbar 
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onResetView={handleResetView}
+          onExportImage={handleExportClick}
+          onResetAll={resetAll}
+          scale={viewState.scale}
+          onToggleGallery={handleToggleGallery}
+          canDeleteCurrent={!!(selectedId && states[selectedId]?.image)}
+          onDeleteCurrent={handleDeleteCurrentProvinceImage}
+        />
+      )}
 
       <Stage
         ref={stageRef}
