@@ -856,14 +856,21 @@ export const MapCanvas: React.FC = () => {
         )}
       </div>
 
-      <div className="md:hidden fixed bottom-28 left-1/2 -translate-x-1/2 text-[11px] text-stone-400 pointer-events-none select-none text-center px-3">
-        <p>点击图片填充 · 双指缩放 · 拖拽平移</p>
-        {selectedId && (
-          <p className="mt-1 text-[10px] text-emerald-500">
-            已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+      {!isEditing && (
+        <div className="md:hidden fixed bottom-44 left-1/2 -translate-x-1/2 text-[10px] text-stone-500 pointer-events-none select-none text-center px-3">
+          <p>
+            点击图片填充 · 双指缩放 · 拖拽平移
+            {selectedId && (
+              <>
+                {' · '}
+                <span className="text-emerald-500">
+                  已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+                </span>
+              </>
+            )}
           </p>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
