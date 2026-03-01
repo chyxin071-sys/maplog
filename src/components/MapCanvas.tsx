@@ -698,9 +698,9 @@ export const MapCanvas: React.FC = () => {
       {!isMobile && (
         <button
           onClick={handleToggleGallery}
-          className="hidden md:flex fixed bottom-32 right-10 z-40 px-3 py-2 rounded-full bg-white/90 border border-gray-200 text-xs text-gray-700 shadow-md hover:bg-gray-50"
+          className="hidden md:flex fixed top-1/2 right-0 -translate-y-1/2 z-40 px-2 py-3 rounded-l-xl bg-white/95 border border-r-0 border-gray-200 text-[11px] text-gray-700 shadow-md hover:bg-gray-50 hover:text-gray-900 items-center gap-1"
         >
-          打开图库
+          <span className="writing-vertical-rl tracking-[0.2em]">图库</span>
         </button>
       )}
 
