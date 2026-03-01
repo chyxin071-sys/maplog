@@ -5,6 +5,7 @@ import { PROVINCE_CONFIGS, MAP_WIDTH, MAP_HEIGHT, MAP_OFFSET_X, MAP_OFFSET_Y, NI
 import { useMapState } from '../hooks/useMapState';
 import { Toolbar } from './Toolbar';
 import { ImageGallery } from './ImageGallery';
+import { PROVINCE_NAMES } from '../utils/provinceMap';
 
 const EXPORT_WIDTH = 2400;
 const EXPORT_HEIGHT = 1800;
@@ -103,6 +104,7 @@ export const MapCanvas: React.FC = () => {
   const exportContentRef = useRef<any>(null);
   const lastCenterRef = useRef<{ x: number; y: number } | null>(null);
   const lastDistRef = useRef<number | null>(null);
+  const lastPanPointRef = useRef<{ x: number; y: number } | null>(null);
 
   const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
     const dx = p2.x - p1.x;
@@ -401,73 +403,101 @@ export const MapCanvas: React.FC = () => {
     fillProvinceWithImage(selectedId, image, bounds || undefined);
   };
 
-  const MIN_RELATIVE_SCALE = 0.6;
-  const MAX_RELATIVE_SCALE = 4;
-
   const handleTouchMove = (e: any) => {
     const stage = stageRef.current;
     if (!stage) return;
-    if (!e.evt.touches || e.evt.touches.length !== 2) return;
+    if (!e.evt.touches || e.evt.touches.length === 0) return;
 
-    const touch1 = e.evt.touches[0];
-    const touch2 = e.evt.touches[1];
-    if (!touch1 || !touch2) return;
+    if (e.evt.touches.length === 2) {
+      const touch1 = e.evt.touches[0];
+      const touch2 = e.evt.touches[1];
+      if (!touch1 || !touch2) return;
 
-    e.evt.preventDefault();
+      e.evt.preventDefault();
 
-    const p1 = { x: touch1.clientX, y: touch1.clientY };
-    const p2 = { x: touch2.clientX, y: touch2.clientY };
+      const p1 = { x: touch1.clientX, y: touch1.clientY };
+      const p2 = { x: touch2.clientX, y: touch2.clientY };
 
-    e.evt.preventDefault();
+      const newCenter = getCenter(p1, p2);
+      const newDist = getDistance(p1, p2);
 
-    const newCenter = getCenter(p1, p2);
-    const newDist = getDistance(p1, p2);
+      if (!lastDistRef.current) {
+        lastDistRef.current = newDist;
+        lastCenterRef.current = newCenter;
+        setIsPinching(true);
+        return;
+      }
 
-    if (!lastDistRef.current) {
+      const oldScale = stage.scaleX();
+      const rawScaleBy = newDist / lastDistRef.current;
+      const adjustedScaleBy = Math.pow(rawScaleBy, 1.4);
+      const tentativeStageScale = oldScale * adjustedScaleBy;
+
+      const MIN_RELATIVE_SCALE = 0.6;
+      const MAX_RELATIVE_SCALE = 4;
+
+      let relativeScale = tentativeStageScale / baseScale;
+
+      if (relativeScale < MIN_RELATIVE_SCALE) {
+        relativeScale = MIN_RELATIVE_SCALE;
+      } else if (relativeScale > MAX_RELATIVE_SCALE) {
+        relativeScale = MAX_RELATIVE_SCALE;
+      }
+
+      const newStageScale = baseScale * relativeScale;
+
+      const pointTo = {
+        x: (newCenter.x - stage.x()) / oldScale,
+        y: (newCenter.y - stage.y()) / oldScale,
+      };
+
+      const newPos = {
+        x: newCenter.x - pointTo.x * newStageScale,
+        y: newCenter.y - pointTo.y * newStageScale,
+      };
+
+      setViewState({
+        scale: relativeScale,
+        x: newPos.x,
+        y: newPos.y,
+      });
+
       lastDistRef.current = newDist;
       lastCenterRef.current = newCenter;
       setIsPinching(true);
       return;
     }
 
-    const oldScale = stage.scaleX();
-    const rawScaleBy = newDist / lastDistRef.current;
-    const adjustedScaleBy = Math.pow(rawScaleBy, 1.4);
-    const tentativeStageScale = oldScale * adjustedScaleBy;
-    let relativeScale = tentativeStageScale / baseScale;
+    if (e.evt.touches.length === 1 && !isEditing) {
+      const touch = e.evt.touches[0];
+      if (!touch) return;
 
-    if (relativeScale < MIN_RELATIVE_SCALE) {
-      relativeScale = MIN_RELATIVE_SCALE;
-    } else if (relativeScale > MAX_RELATIVE_SCALE) {
-      relativeScale = MAX_RELATIVE_SCALE;
+      e.evt.preventDefault();
+
+      const currentPoint = { x: touch.clientX, y: touch.clientY };
+
+      if (!lastPanPointRef.current) {
+        lastPanPointRef.current = currentPoint;
+        return;
+      }
+
+      const dx = currentPoint.x - lastPanPointRef.current.x;
+      const dy = currentPoint.y - lastPanPointRef.current.y;
+
+      lastPanPointRef.current = currentPoint;
+
+      setViewState(prev => ({
+        ...prev,
+        x: prev.x + dx,
+        y: prev.y + dy,
+      }));
     }
-
-    const newStageScale = baseScale * relativeScale;
-
-    const pointTo = {
-      x: (newCenter.x - stage.x()) / oldScale,
-      y: (newCenter.y - stage.y()) / oldScale,
-    };
-
-    const newPos = {
-      x: newCenter.x - pointTo.x * newStageScale,
-      y: newCenter.y - pointTo.y * newStageScale,
-    };
-
-    setViewState({
-      scale: relativeScale,
-      x: newPos.x,
-      y: newPos.y,
-    });
-
-    lastDistRef.current = newDist;
-    lastCenterRef.current = newCenter;
-    setIsPinching(true);
   };
 
   const handleTouchEnd = () => {
     lastDistRef.current = null;
     lastCenterRef.current = null;
+    lastPanPointRef.current = null;
     setIsPinching(false);
   };
 
@@ -799,6 +829,11 @@ export const MapCanvas: React.FC = () => {
       
       <div className="absolute bottom-4 left-4 text-stone-400 text-sm pointer-events-none select-none">
         <p>拖拽或点击图片填充 • 滚轮/双指缩放 • 拖拽平移</p>
+        {selectedId && (
+          <p className="mt-1 text-xs text-emerald-500">
+            已选中：{PROVINCE_NAMES[selectedId] || '某个省份'} · 可在下方图库中选择图片填充
+          </p>
+        )}
       </div>
     </div>
   );

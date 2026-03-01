@@ -116,7 +116,7 @@ export const Province: React.FC<ProvinceProps> = ({
     });
   };
 
-  const scale = isHovered ? 1.05 : 1;
+  const scale = isSelected ? 1.08 : (isHovered ? 1.04 : 1);
 
   return (
     <Group
@@ -193,11 +193,27 @@ export const Province: React.FC<ProvinceProps> = ({
       {/* 3. Background Path (Border/Shape) */}
       <Path
         data={config.path}
-        // If image exists, fill is transparent so we see the image. 
-        // If no image, white/gray.
-        fill={state?.image ? 'transparent' : (isDragTarget ? '#e0f2fe' : (isHovered ? '#f8fafc' : '#ffffff'))}
-        stroke={isDragTarget ? '#3b82f6' : (isHovered ? '#94a3b8' : '#cbd5e1')} // Highlight on drag
-        strokeWidth={isDragTarget ? 2 : 1}
+        fill={
+          state?.image
+            ? 'transparent'
+            : isSelected
+            ? '#e0f2fe'
+            : isDragTarget
+            ? '#e0f2fe'
+            : isHovered
+            ? '#f8fafc'
+            : '#ffffff'
+        }
+        stroke={
+          isSelected
+            ? '#0f172a'
+            : isDragTarget
+            ? '#3b82f6'
+            : isHovered
+            ? '#94a3b8'
+            : '#cbd5e1'
+        }
+        strokeWidth={isSelected ? 2.5 : isDragTarget ? 2 : 1}
         ref={shapeRef}
         listening={!state?.image || !isEditing} // If editing image, let clicks pass to image? 
         // Actually, we want to be able to click the province to select it if not selected.
@@ -224,7 +240,7 @@ export const Province: React.FC<ProvinceProps> = ({
       )}
 
       {/* Province Name Label */}
-      {isHovered && center && !isEditing && (
+      {(isHovered || isSelected) && center && !isEditing && (
         <Label
           x={center.x}
           y={center.y - 10} // Offset slightly up
