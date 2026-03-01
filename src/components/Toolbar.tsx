@@ -108,9 +108,9 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               className="md:hidden"
             />
             <TooltipButton 
-              onClick={() => window.open('https://github.com/chyxin071-sys/maplog/issues', '_blank', 'noopener,noreferrer')}
+              onClick={() => window.open('https://support.qq.com/product/799259', '_blank', 'noopener,noreferrer')}
               icon={<MessageSquare size={20} strokeWidth={1.5} />} 
-              label="留言反馈（公开）" 
+              label="留言反馈（兔小巢）" 
             />
             <TooltipButton 
               onClick={onExportImage} 
